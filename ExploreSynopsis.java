@@ -5,6 +5,7 @@ import javax.swing.*;
 import java.awt.event.*;
 import java.util.*;
 import java.lang.Math.*;
+import javax.sound.sampled.*;
 
 
 public class ExploreSynopsis {
@@ -17,6 +18,7 @@ public class ExploreSynopsis {
   static int hSynopsis = (ih/2) * hFrameNum;
   static int wPlayer = wSynopsis;
   static int hPlayer = ih * 2 + hSynopsis;
+  static int fps = 30;
   String synopsisPath;
   BufferedImageWithMetaData synopsisImg;
   ArrayList<BufferedImage[]> playVideoFrame; // store all video frames
@@ -29,9 +31,10 @@ public class ExploreSynopsis {
   JLabel jlVideoImgText;
   int currentFrame = 0; // from idx 0, not 1. If click synopsisImg or stop, it will be update
   int currentVideoFolder = -1; // initially -1 means no setup
+  String currentAudioPath;
   boolean currentIsVideo = true;
-  int ST_STOP = 0;
-  int ST_PLAY = 1;
+  static int ST_STOP = 0;
+  static int ST_PLAY = 1;
   int status = ST_STOP;
 
 
@@ -54,6 +57,7 @@ public class ExploreSynopsis {
     this.jlVideoImgText = new JLabel();
     this.jlVideoImgText.setHorizontalAlignment(JLabel.CENTER);
     this.jlVideoImgText.setVerticalAlignment(JLabel.CENTER);
+    this.currentAudioPath = new String();
   }
 
   public void deserializeSynopsisImg()
@@ -112,8 +116,8 @@ public class ExploreSynopsis {
     JButton play = new JButton("Play");
     JButton pause = new JButton("Pause");
     JButton stop = new JButton("Stop");
-    JButton playback1s = new JButton("Playback 1s");
-    JButton playforward1s = new JButton("Playforward 1s");
+    JButton back1s = new JButton("Back 1s");
+    JButton forward1s = new JButton("Forward 1s");
     JPanel jpPlayer = new JPanel(new BorderLayout());
     jpPlayer.add(jlVideoImgText, BorderLayout.NORTH);
     jpPlayer.add(jlVideoImg, BorderLayout.CENTER);
@@ -121,8 +125,8 @@ public class ExploreSynopsis {
     jpButton.add(play);
     jpButton.add(pause);
     jpButton.add(stop);
-    jpButton.add(playback1s);
-    jpButton.add(playforward1s);
+    jpButton.add(back1s);
+    jpButton.add(forward1s);
     jpPlayer.add(jpButton, BorderLayout.SOUTH);
     jf.add(jpPlayer);
     JLabel jlSynopsisImg = new JLabel(new ImageIcon(synopsisImg.img));
@@ -145,6 +149,7 @@ public class ExploreSynopsis {
                     currentFrame = playFrameStringToIdx.get(currentVideoFolder).get(md.filePath);
                     jlVideoImg.setIcon(new ImageIcon(playVideoFrame.get(currentVideoFolder)[currentFrame]));
                     jlVideoImgText.setText(new File(md.filePath).getParent());
+                    currentAudioPath = md.audioPath;
                   } else {
                     status = ST_STOP;
                     currentIsVideo = false;
@@ -178,7 +183,23 @@ public class ExploreSynopsis {
               new Runnable() {
                 @Override
                 public void run() {
-                  showIms();
+                  try {
+                    AudioInputStream ais = AudioSystem.getAudioInputStream(new File(currentAudioPath));
+                    AudioFormat af = ais.getFormat();
+                    DataLine.Info info = new DataLine.Info(Clip.class, af);
+                    Clip clip = (Clip) AudioSystem.getLine(info);
+                    clip.open(ais);
+                    clip.setMicrosecondPosition(currentFrame / fps * 1000000);
+                    clip.start();
+                    showIms();
+                    clip.stop();
+                  } catch (UnsupportedAudioFileException e) {
+                    e.printStackTrace();
+                  } catch (IOException e) {
+                    e.printStackTrace();
+                  } catch (LineUnavailableException e) {
+                    e.printStackTrace();
+                  }
                 }
               }
             ).start();
@@ -206,7 +227,7 @@ public class ExploreSynopsis {
         }
       }
     );
-    playback1s.addActionListener(
+    back1s.addActionListener(
       new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           if (currentIsVideo) {
@@ -217,7 +238,7 @@ public class ExploreSynopsis {
         }
       }
     );
-    playforward1s.addActionListener(
+    forward1s.addActionListener(
       new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           if (currentIsVideo) {
