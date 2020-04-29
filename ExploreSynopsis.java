@@ -6,6 +6,7 @@ import java.awt.event.*;
 import java.util.*;
 import java.lang.Math.*;
 import javax.sound.sampled.*;
+import java.util.stream.IntStream;
 
 
 public class ExploreSynopsis {
@@ -90,19 +91,22 @@ public class ExploreSynopsis {
         playImgIdx++;
       }
     }
-    // read all frames in video folders, use multi-thread like omp to optimize reading
+    // read all frames in video folders, use parallel stream to optimize reading
     for (int i = 0; i < folderNameList.size(); i++) {
       File[] framesList = new File(folderNameList.get(i)).listFiles();
       Arrays.sort(framesList);
       BufferedImage[] frames = new BufferedImage[framesList.length];
       HashMap<String, Integer> frameStringToIdx = new HashMap<String, Integer>();
-      // omp optimize
-      for (int j = 0; j < framesList.length; j++) {
-        frameStringToIdx.put(framesList[j].getPath(), j);
-        BufferedImage frame = new BufferedImage(iw, ih, BufferedImage.TYPE_INT_RGB);
-        readImageRGB(iw, ih, framesList[j].getPath(), frame);
-        frames[j] = frame;
-      }
+      // parallel reading
+      IntStream.range(0, framesList.length).parallel().forEach(
+        j -> {
+          frameStringToIdx.put(framesList[j].getPath(), j);
+          BufferedImage frame = new BufferedImage(iw, ih, BufferedImage.TYPE_INT_RGB);
+          readImageRGB(iw, ih, framesList[j].getPath(), frame);
+          frames[j] = frame;
+        }
+      );
+      
       playFrameStringToIdx.add(frameStringToIdx);
       playVideoFrame.add(frames);
     }
@@ -231,7 +235,7 @@ public class ExploreSynopsis {
       new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           if (currentIsVideo) {
-            currentFrame = Math.max(0, currentFrame - 30);
+            currentFrame = Math.max(0, currentFrame - fps);
             status = ST_STOP;
             jlVideoImg.setIcon(new ImageIcon(playVideoFrame.get(currentVideoFolder)[currentFrame]));
           }
@@ -242,7 +246,7 @@ public class ExploreSynopsis {
       new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           if (currentIsVideo) {
-            currentFrame = Math.min(playVideoFrame.get(currentVideoFolder).length-1, currentFrame + 30);
+            currentFrame = Math.min(playVideoFrame.get(currentVideoFolder).length-1, currentFrame + fps);
             status = ST_STOP;
             jlVideoImg.setIcon(new ImageIcon(playVideoFrame.get(currentVideoFolder)[currentFrame]));
           }
