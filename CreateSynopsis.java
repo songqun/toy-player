@@ -39,32 +39,38 @@ public class CreateSynopsis {
     Arrays.sort(fileList);
     for (int i = 0; i < fileList.length; i++) {
       if (fileList[i].isDirectory()) {
-        if (fileList[i].getName().equals("Image")) {  // handle ./Image/RGB/
-          File[] subfileList = new File(fileList[i].getPath()).listFiles();
-          for (int j = 0; j < subfileList.length; j++) {
-            if (subfileList[j].getName().equals("RGB")) {
-              File[] imgFiles = new File(subfileList[j].getPath()).listFiles();
-              Arrays.sort(imgFiles);
-              imgList = new String[imgFiles.length];
-              for (int k = 0; k < imgFiles.length; k++) {
-                imgList[k] = imgFiles[k].getPath();
-              }
+        if (fileList[i].getName().toLowerCase().equals("image")) {  // handle ./image/
+          File[] imgFiles = new File(fileList[i].getPath()).listFiles(new FileFilter() {
+            @Override
+            public boolean accept(File file) {
+              return !file.isHidden();
             }
+          });
+          Arrays.sort(imgFiles);
+          imgList = new String[imgFiles.length];
+          for (int k = 0; k < imgFiles.length; k++) {
+            imgList[k] = imgFiles[k].getPath();
           }
         } else {  // handle ./XXXVideoN/
-          File[] frameFiles = new File(fileList[i].getPath()).listFiles();
+          File[] frameFiles = new File(fileList[i].getPath()).listFiles(new FileFilter() {
+            @Override
+            public boolean accept(File file) {
+              return !file.isHidden();
+            }
+          });
           Arrays.sort(frameFiles);
-          String[] frameList = new String[frameFiles.length];
+          String[] frameList = new String[frameFiles.length - 1]; // one for .wav
+          int cnt = 0;
           for (int j = 0; j < frameFiles.length; j++) {
-            frameList[j] = frameFiles[j].getPath();
+            String fileName = frameFiles[j].getName();
+            if (fileName.substring(fileName.lastIndexOf(".")).equals(".wav")) {
+              audioList.add(frameFiles[j].getPath());
+            } else {
+              frameList[cnt] = frameFiles[j].getPath();
+              cnt++;
+            }
           }
           frameFolderList.add(frameList);
-        }
-      } else {
-        String fileName = fileList[i].getName();
-        String fileType = fileName.substring(fileName.lastIndexOf("."));
-        if (fileType.equals(".wav")) {
-          audioList.add(fileList[i].getPath());
         }
       }
     }

@@ -24,7 +24,7 @@ public class ExploreSynopsis {
   BufferedImageWithMetaData synopsisImg;
   ArrayList<BufferedImage[]> playVideoFrame; // store all video frames
   ArrayList<HashMap<String, Integer>> playFrameStringToIdx;
-  ArrayList<BufferedImage> playImg; // only store ./Image/RGB/image-xxx in synopsisImg
+  ArrayList<BufferedImage> playImg; // only store ./image/image-xxx in synopsisImg
   HashMap<String, Integer> playImgStringToIdx;
   ArrayList<String> folderNameList;
   JFrame jf;
@@ -93,7 +93,13 @@ public class ExploreSynopsis {
     }
     // read all frames in video folders, use parallel stream to optimize reading
     for (int i = 0; i < folderNameList.size(); i++) {
-      File[] framesList = new File(folderNameList.get(i)).listFiles();
+      File[] framesList = new File(folderNameList.get(i)).listFiles(new FileFilter() {
+        @Override
+        public boolean accept(File file) {
+          String fileName = file.getName();
+          return !fileName.substring(fileName.lastIndexOf(".")).equals(".wav");
+        }
+      });
       Arrays.sort(framesList);
       BufferedImage[] frames = new BufferedImage[framesList.length];
       HashMap<String, Integer> frameStringToIdx = new HashMap<String, Integer>();
@@ -106,7 +112,6 @@ public class ExploreSynopsis {
           frames[j] = frame;
         }
       );
-      
       playFrameStringToIdx.add(frameStringToIdx);
       playVideoFrame.add(frames);
     }
