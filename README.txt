@@ -8,5 +8,6 @@ Run:
 
 Notice:
   When compile and run CreateSynopsis, please link opencv path.
+  I hardcode "lbpcascade_frontalface.xml" model in CreateSynopsis.java for face detection. https://raw.githubusercontent.com/opencv-java/face-detection/master/resources/lbpcascades/lbpcascade_frontalface.xml
 
-  When run ExploreSynopsis, Please set JVM max heap space as large as possible ( > 4G), because it buffered all video frames and images at once.
+  When run ExploreSynopsis, Please set JVM max heap space as large as possible ( > 6G), because it buffered all video frames and images at once.
