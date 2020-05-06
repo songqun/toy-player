@@ -6,6 +6,7 @@ import javax.swing.*;
 import org.opencv.core.*;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.objdetect.*;
+import javax.imageio.*;
 
 
 public class CreateSynopsis {
@@ -186,6 +187,17 @@ public class CreateSynopsis {
     frame.setVisible(true);
   }
 
+  public void storeSynopsisWithoutMetadata()
+  {
+    try {
+      File outFile = new File("synopsis_without_meta_data.png");
+      ImageIO.write(outImg.img, "png", outFile);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+
   public void readImageRGB(int width, int height, String imgPath, BufferedImage img)
   {
     try {
@@ -348,6 +360,7 @@ public class CreateSynopsis {
     cs.chooseSynopsisClearestTop10DetectMostFace();
     cs.encodeOutImgLayoutNaive();
     cs.serializeOutImg();
+    cs.storeSynopsisWithoutMetadata();
     //cs.showIm(cs.outImg.img);
     //cs.deserializeOutImg();
   }
