@@ -1,9 +1,9 @@
 Compile:
   javac -cp ".:YOUR/PATH/TO/OPENCV/AR" CreateSynopsis.java
-  javac -Djava.library.path=YOUR/PATH/TO/OPENCVDYLIB -cp ".:YOUR/PATH/TO/OPENCVJAR" ExploreSynopsis.java
+  javac ExploreSynopsis.java
 
 Run:
-  java CreateSynopsis YourMediaFolder synopsis.rgb
+  java -Djava.library.path=YOUR/PATH/TO/OPENCVDYLIB -cp ".:YOUR/PATH/TO/OPENCVJAR" CreateSynopsis YourMediaFolder synopsis.rgb
   java -Xmx6144m ExploreSynopsis synopsis.rgb
 
 Notice:
