@@ -37,6 +37,8 @@ public class ExploreSynopsis {
   static int ST_STOP = 0;
   static int ST_PLAY = 1;
   int status = ST_STOP;
+  long audioStartTime;  // real time in nano
+  long audioStarTimeStamp; // relative time (from start) in micro
 
 
   /*
@@ -198,7 +200,9 @@ public class ExploreSynopsis {
                     DataLine.Info info = new DataLine.Info(Clip.class, af);
                     Clip clip = (Clip) AudioSystem.getLine(info);
                     clip.open(ais);
-                    clip.setMicrosecondPosition(currentFrame / fps * 1000000);
+                    audioStarTimeStamp = currentFrame * 1000000 / fps;
+                    clip.setMicrosecondPosition(audioStarTimeStamp);
+                    audioStartTime = System.nanoTime();
                     clip.start();
                     showIms();
                     clip.stop();
@@ -266,8 +270,10 @@ public class ExploreSynopsis {
     while (currentFrame < playVideoFrame.get(currentVideoFolder).length && status == ST_PLAY) {
       jlVideoImg.setIcon(new ImageIcon(playVideoFrame.get(currentVideoFolder)[currentFrame]));
       currentFrame++;
+      long nextTimeStamp = (long)(currentFrame * 1000000 / fps);
+      long deltaTime = + nextTimeStamp*1000 - audioStarTimeStamp*1000 - System.nanoTime() + audioStartTime;
       try {
-        Thread.sleep((long)(1000/30));
+        Thread.sleep((long)(deltaTime/1000000), (int)(deltaTime - (long)(deltaTime/1000000)*1000000));
       } catch (InterruptedException e) {
         e.printStackTrace();
       }
